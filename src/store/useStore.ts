@@ -43,6 +43,16 @@ interface AppState {
   selectedTheme: ThemeOption;
   setSelectedTheme: (theme: ThemeOption) => void;
 
+  // Document
+  documentContent: string;
+  documentName: string;
+  selectedExcerpts: string[];
+  setDocumentContent: (content: string, name: string) => void;
+  clearDocument: () => void;
+  addExcerpt: (text: string) => void;
+  removeExcerpt: (index: number) => void;
+  clearExcerpts: () => void;
+
   // History
   history: HistoryItem[];
   addToHistory: (item: Omit<HistoryItem, 'id' | 'timestamp'>) => void;
@@ -96,6 +106,22 @@ export const useStore = create<AppState>()(
       // Theme
       selectedTheme: 'default',
       setSelectedTheme: (theme) => set({ selectedTheme: theme }),
+
+      // Document
+      documentContent: '',
+      documentName: '',
+      selectedExcerpts: [],
+      setDocumentContent: (content, name) => set({ documentContent: content, documentName: name, selectedExcerpts: [] }),
+      clearDocument: () => set({ documentContent: '', documentName: '', selectedExcerpts: [] }),
+      addExcerpt: (text) => set((state) => ({
+        selectedExcerpts: state.selectedExcerpts.includes(text)
+          ? state.selectedExcerpts
+          : [...state.selectedExcerpts, text],
+      })),
+      removeExcerpt: (index) => set((state) => ({
+        selectedExcerpts: state.selectedExcerpts.filter((_, i) => i !== index),
+      })),
+      clearExcerpts: () => set({ selectedExcerpts: [] }),
 
       // History
       history: [],

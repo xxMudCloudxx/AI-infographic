@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import {
   Send,
   History,
@@ -9,12 +9,15 @@ import {
   Check,
   X,
   Palette,
+  Paperclip,
 } from "lucide-react";
+import * as mammoth from "mammoth";
 import { useStore } from "../../store/useStore";
 import type { ThemeOption } from "../../store/useStore";
 import { presetPrompts } from "../../data/presets";
 import { generateInfographic } from "../../services/aiService";
 import { applyThemeToDsl } from "../../utils/themeHelper";
+import { DocumentPanel } from "../DocumentPanel";
 
 const THEME_OPTIONS: { value: ThemeOption; label: string }[] = [
   { value: "default", label: "Default" },
@@ -39,10 +42,14 @@ export function InputPanel() {
     addToHistory,
     clearHistory,
     apiConfig,
+    selectedExcerpts,
+    setDocumentContent,
   } = useStore();
 
   const [showHistory, setShowHistory] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   // 3秒后重置状态
   useEffect(() => {
@@ -64,6 +71,34 @@ export function InputPanel() {
     }
   }, [selectedTheme, currentDsl, setCurrentDsl]);
 
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    try {
+      let text = "";
+      if (file.name.endsWith(".md")) {
+        text = await file.text();
+      } else if (file.name.endsWith(".docx")) {
+        const arrayBuffer = await file.arrayBuffer();
+        const result = await mammoth.extractRawText({ arrayBuffer });
+        text = result.value;
+      }
+
+      if (text.trim()) {
+        setDocumentContent(text, file.name);
+        // 如果想让上传文件自动打开面板，可以考虑这里
+      }
+    } catch (err) {
+      console.error("文件读取失败:", err);
+      setError("文档读取失败，请检查文件格式是否正确");
+    }
+
+    if (fileInputRef.current) {
+      fileInputRef.current.value = "";
+    }
+  };
+
   const handleGenerate = async () => {
     if (!inputText.trim() || isGenerating) return;
 
@@ -78,7 +113,15 @@ export function InputPanel() {
     setGenerateStatus("loading");
 
     try {
-      let dsl = await generateInfographic(inputText, apiConfig);
+      let fullPrompt = inputText;
+      if (selectedExcerpts.length > 0) {
+        const excerptText = selectedExcerpts
+          .map((e, i) => `[引用${i + 1}] ${e}`)
+          .join("\n");
+        fullPrompt = `${inputText}\n\n---\n以下是用户从文档中选取的参考内容，请据此生成信息图：\n${excerptText}`;
+      }
+
+      let dsl = await generateInfographic(fullPrompt, apiConfig);
       // 生成后应用当前选中的主题
       dsl = applyThemeToDsl(dsl, selectedTheme);
       setCurrentDsl(dsl);
@@ -226,7 +269,23 @@ export function InputPanel() {
             onChange={(e) => setInputText(e.target.value)}
             onKeyDown={handleKeyDown}
             placeholder="描述你想要生成的信息图，例如：展示2019-2023年公司营收增长趋势..."
-            className="w-full h-32 p-3 pr-12 border border-gray-200 rounded-lg resize-none focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent text-sm"
+            className="w-full h-32 p-3 pb-10 pr-12 border border-gray-200 rounded-lg resize-none focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent text-sm"
+          />
+          {/* File Upload Button - 左下角 */}
+          <button
+            type="button"
+            onClick={() => fileInputRef.current?.click()}
+            title="上传 .md 或 .docx 文件"
+            className="absolute left-3 bottom-3 p-1.5 rounded-md text-gray-400 hover:text-indigo-500 hover:bg-indigo-50 transition-colors"
+          >
+            <Paperclip className="w-4 h-4" />
+          </button>
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept=".md,.docx"
+            onChange={handleFileUpload}
+            className="hidden"
           />
           <button
             onClick={handleGenerate}
@@ -258,6 +317,9 @@ export function InputPanel() {
           ))}
         </div>
       </div>
+      
+      {/* Document Panel */}
+      <DocumentPanel />
     </div>
   );
 }
