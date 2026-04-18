@@ -1,25 +1,46 @@
-import { useEffect, useRef, useState } from 'react';
+import { useDeferredValue, useEffect, useMemo, useRef, useState, useTransition } from 'react';
 import { Search, Filter, Play } from 'lucide-react';
 import { Infographic } from '@antv/infographic';
 import { galleryItems } from '../../data/presets';
 import type { PresetItem } from '../../data/presets';
 import { useStore } from '../../store/useStore';
 
-const categories = ['全部', '图表型', '列表型', '顺序型', '对比型', '层级型', '关系型'];
-
 export function Gallery() {
+  const INITIAL_VISIBLE_COUNT = 18;
+  const LOAD_MORE_STEP = 18;
+
   const { setCurrentDsl, setInputText } = useStore();
   const [selectedCategory, setSelectedCategory] = useState('全部');
   const [searchText, setSearchText] = useState('');
-  const [hoveredId, setHoveredId] = useState<string | null>(null);
+  const [visibleCount, setVisibleCount] = useState(INITIAL_VISIBLE_COUNT);
+  const [isPending, startTransition] = useTransition();
+  const deferredSearchText = useDeferredValue(searchText);
 
-  const filteredItems = galleryItems.filter((item) => {
-    const matchCategory = selectedCategory === '全部' || item.category === selectedCategory;
-    const matchSearch = !searchText ||
-      item.title.toLowerCase().includes(searchText.toLowerCase()) ||
-      item.description.toLowerCase().includes(searchText.toLowerCase());
-    return matchCategory && matchSearch;
-  });
+  const categories = useMemo(() => {
+    const categorySet = new Set(galleryItems.map((item) => item.category));
+    return ['全部', ...Array.from(categorySet)];
+  }, []);
+
+  const filteredItems = useMemo(() => {
+    const normalizedSearchText = deferredSearchText.trim().toLowerCase();
+    return galleryItems.filter((item) => {
+      const matchCategory = selectedCategory === '全部' || item.category === selectedCategory;
+      const matchSearch =
+        !normalizedSearchText ||
+        item.title.toLowerCase().includes(normalizedSearchText) ||
+        item.description.toLowerCase().includes(normalizedSearchText);
+      return matchCategory && matchSearch;
+    });
+  }, [selectedCategory, deferredSearchText]);
+
+  const visibleItems = useMemo(
+    () => filteredItems.slice(0, visibleCount),
+    [filteredItems, visibleCount]
+  );
+
+  useEffect(() => {
+    setVisibleCount(INITIAL_VISIBLE_COUNT);
+  }, [selectedCategory, deferredSearchText]);
 
   const handleUseItem = (item: PresetItem) => {
     setCurrentDsl(item.dsl);
@@ -47,7 +68,11 @@ export function Gallery() {
             {categories.map((cat) => (
               <button
                 key={cat}
-                onClick={() => setSelectedCategory(cat)}
+                onClick={() => {
+                  startTransition(() => {
+                    setSelectedCategory(cat);
+                  });
+                }}
                 className={`px-4 py-1.5 text-sm rounded-full border transition-colors ${
                   selectedCategory === cat
                     ? 'bg-indigo-500 text-white border-indigo-500'
@@ -70,23 +95,36 @@ export function Gallery() {
             />
           </div>
           <span className="text-sm text-gray-500">
-            {filteredItems.length} / {galleryItems.length}
+            {visibleItems.length} / {filteredItems.length} / {galleryItems.length}
           </span>
         </div>
 
         {/* Gallery Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {filteredItems.map((item) => (
+          {visibleItems.map((item) => (
             <GalleryCard
               key={item.id}
               item={item}
-              isHovered={hoveredId === item.id}
-              onHover={() => setHoveredId(item.id)}
-              onLeave={() => setHoveredId(null)}
               onUse={() => handleUseItem(item)}
             />
           ))}
         </div>
+
+        {visibleCount < filteredItems.length && (
+          <div className="mt-8 flex justify-center">
+            <button
+              type="button"
+              onClick={() => setVisibleCount((prev) => prev + LOAD_MORE_STEP)}
+              className="px-5 py-2 text-sm rounded-lg border border-indigo-200 text-indigo-600 hover:bg-indigo-50 transition-colors"
+            >
+              加载更多 ({Math.min(LOAD_MORE_STEP, filteredItems.length - visibleCount)})
+            </button>
+          </div>
+        )}
+
+        {isPending && (
+          <div className="mt-3 text-center text-xs text-gray-400">正在更新筛选结果...</div>
+        )}
 
         {filteredItems.length === 0 && (
           <div className="text-center py-16 text-gray-400">
@@ -100,13 +138,10 @@ export function Gallery() {
 
 interface GalleryCardProps {
   item: PresetItem;
-  isHovered: boolean;
-  onHover: () => void;
-  onLeave: () => void;
   onUse: () => void;
 }
 
-function GalleryCard({ item, isHovered, onHover, onLeave, onUse }: GalleryCardProps) {
+function GalleryCard({ item, onUse }: GalleryCardProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const instanceRef = useRef<Infographic | null>(null);
 
@@ -132,8 +167,6 @@ function GalleryCard({ item, isHovered, onHover, onLeave, onUse }: GalleryCardPr
   return (
     <div
       className="group relative bg-white border border-gray-200 rounded-xl overflow-hidden hover:shadow-lg transition-shadow"
-      onMouseEnter={onHover}
-      onMouseLeave={onLeave}
     >
       <div
         ref={containerRef}
@@ -142,9 +175,7 @@ function GalleryCard({ item, isHovered, onHover, onLeave, onUse }: GalleryCardPr
 
       {/* Hover Overlay */}
       <div
-        className={`absolute inset-0 bg-black/50 flex items-center justify-center transition-opacity ${
-          isHovered ? 'opacity-100' : 'opacity-0 pointer-events-none'
-        }`}
+        className="absolute inset-0 bg-black/50 flex items-center justify-center transition-opacity opacity-0 pointer-events-none group-hover:opacity-100 group-hover:pointer-events-auto"
       >
         <button
           onClick={onUse}
