@@ -157,19 +157,18 @@ export const useStore = create<AppState>()(
         // 只持久化用户手动设置的配置，不持久化环境变量的默认值
         apiConfig: state.apiConfig,
       }),
-      // 合并时优先使用环境变量中的值（如果有的话）
+      // 合并时优先使用本地存储的用户自定义配置
       merge: (persistedState, currentState) => {
         const persisted = persistedState as Partial<AppState>;
-        const envConfig = getInitialApiConfig();
 
         return {
           ...currentState,
           ...persisted,
           apiConfig: {
-            // 如果环境变量有值，优先使用环境变量
-            baseUrl: envConfig.baseUrl || persisted.apiConfig?.baseUrl || currentState.apiConfig.baseUrl,
-            apiKey: envConfig.apiKey || persisted.apiConfig?.apiKey || currentState.apiConfig.apiKey,
-            model: envConfig.model || persisted.apiConfig?.model || currentState.apiConfig.model,
+            // 优先使用 localStorage 里的值，如果没有再用初始值（包含环境变量/默认值）
+            baseUrl: persisted.apiConfig?.baseUrl || currentState.apiConfig.baseUrl,
+            apiKey: persisted.apiConfig?.apiKey || currentState.apiConfig.apiKey,
+            model: persisted.apiConfig?.model || currentState.apiConfig.model,
           },
         };
       },
