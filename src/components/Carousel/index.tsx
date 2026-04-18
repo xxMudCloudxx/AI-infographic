@@ -52,8 +52,8 @@ export function Carousel() {
   }, []);
 
   return (
-    <section className="relative bg-linear-to-br from-slate-50 to-indigo-50 py-10">
-      <div className="max-w-7xl mx-auto px-4">
+    <section className="relative bg-linear-to-br from-slate-50 to-indigo-50 py-6 lg:py-8">
+      <div className="max-w-[1800px] mx-auto px-2 lg:px-4">
         <div ref={sectionRef} className="relative overflow-x-clip">
           <div
             className="carousel-marquee-track py-2"
@@ -127,15 +127,12 @@ function CarouselCard({
     index % 2 === 0 ? "rotate-2 hover:-rotate-1" : "-rotate-2 hover:rotate-1";
 
   return (
-    <div className="group flex justify-center px-5 min-w-[65%] md:min-w-[45%] lg:min-w-[25%]">
+    <div className="group flex justify-center px-8 lg:px-10 min-w-[78%] md:min-w-[52%] lg:min-w-[30%] xl:min-w-[26%]">
       <div
         className={`rounded-2xl transition-transform duration-300 ease-in-out group-hover:scale-105 ${rotateClass}`}
       >
         <div className="relative overflow-hidden rounded-2xl bg-white border border-gray-200 shadow-sm">
-          <div
-            ref={containerRef}
-            className="aspect-4/3 w-full min-w-70 lg:min-w-80 bg-gray-50"
-          />
+          <div ref={containerRef} className="aspect-4/3 w-full bg-gray-50" />
         </div>
       </div>
     </div>

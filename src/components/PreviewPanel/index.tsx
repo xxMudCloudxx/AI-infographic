@@ -134,12 +134,12 @@ export function PreviewPanel() {
 
       <div className="flex-1 overflow-hidden relative">
         {viewMode === "preview" ? (
-          <div className="w-full h-full p-4 overflow-auto bg-white">
+          <div className="w-full h-full p-2 lg:p-3 overflow-auto bg-white">
             {currentDsl ? (
               <>
                 <div
                   ref={containerRef}
-                  className="w-full h-full min-h-[400px] flex items-center justify-center"
+                  className="w-full h-full min-h-155 lg:min-h-185 flex items-center justify-center"
                 />
                 {error && (
                   <div className="absolute inset-0 flex items-center justify-center bg-white/80">
