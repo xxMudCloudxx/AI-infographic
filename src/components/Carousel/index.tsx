@@ -18,8 +18,25 @@ const getWarmSolidColor = (index: number) =>
 
 export function Carousel() {
   const sectionRef = useRef<HTMLDivElement>(null);
+  const trackRef = useRef<HTMLDivElement>(null);
   const [shouldPlay, setShouldPlay] = useState(false);
   const [isLazy, setIsLazy] = useState(true);
+  const [contentWidth, setContentWidth] = useState(0);
+
+  // 计算单份内容的实际宽度
+  useEffect(() => {
+    if (!trackRef.current) return;
+    const firstGroup = trackRef.current.querySelector('[data-carousel-group="0"]');
+    if (firstGroup) {
+      const updateWidth = () => {
+        setContentWidth(firstGroup.scrollWidth);
+      };
+      updateWidth();
+      // 延迟再次计算，确保内容渲染完成
+      const timer = setTimeout(updateWidth, 500);
+      return () => clearTimeout(timer);
+    }
+  }, [isLazy]);
 
   useEffect(() => {
     if (!sectionRef.current) return;
@@ -66,25 +83,29 @@ export function Carousel() {
   }, []);
 
   return (
-    <section className="relative bg-linear-to-br from-slate-50 to-indigo-50 py-8 lg:py-12 overflow-hidden">
+    <section className="relative bg-gradient-to-br from-slate-50 to-indigo-50 py-8 lg:py-12 overflow-hidden">
       <div ref={sectionRef} className="relative">
-        {/* 单个track，内容复制两次实现无缝滚动 */}
         <div
+          ref={trackRef}
           className="carousel-track flex"
-          style={{ animationPlayState: shouldPlay ? "running" : "paused" }}
+          style={{
+            animationPlayState: shouldPlay ? "running" : "paused",
+            // 使用实际计算的宽度作为动画距离
+            ["--scroll-width" as string]: contentWidth ? `${contentWidth}px` : "50%",
+          }}
         >
-          <CarouselItems isLazy={isLazy} />
-          <CarouselItems isLazy={isLazy} aria-hidden />
+          <CarouselItems isLazy={isLazy} groupId="0" />
+          <CarouselItems isLazy={isLazy} groupId="1" aria-hidden />
         </div>
       </div>
     </section>
   );
 }
 
-const CarouselItems = memo<{ isLazy: boolean; "aria-hidden"?: boolean }>(
-  function CarouselItems({ isLazy, "aria-hidden": ariaHidden }) {
+const CarouselItems = memo<{ isLazy: boolean; groupId: string; "aria-hidden"?: boolean }>(
+  function CarouselItems({ isLazy, groupId, "aria-hidden": ariaHidden }) {
     return (
-      <div className="flex shrink-0" aria-hidden={ariaHidden}>
+      <div className="flex shrink-0" aria-hidden={ariaHidden} data-carousel-group={groupId}>
         {carouselItems.map((item, index) => (
           <CarouselCard
             key={`carousel-${item.id}-${index}`}
@@ -95,7 +116,7 @@ const CarouselItems = memo<{ isLazy: boolean; "aria-hidden"?: boolean }>(
         ))}
       </div>
     );
-  },
+  }
 );
 
 function CarouselCard({
@@ -142,7 +163,7 @@ function CarouselCard({
         <div className="relative overflow-hidden rounded-2xl bg-white border border-gray-200 shadow-md hover:shadow-lg transition-shadow">
           <div
             ref={containerRef}
-            className="w-80 lg:w-100 aspect-4/3 bg-gray-50 p-3"
+            className="w-80 lg:w-100 aspect-4/3 p-3"
             style={{
               backgroundColor: warmBackground,
             }}
