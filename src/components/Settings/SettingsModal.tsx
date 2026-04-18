@@ -1,14 +1,20 @@
 import { X } from 'lucide-react';
 import { useStore } from '../../store/useStore';
-import { useState, useEffect } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 
 export function SettingsModal() {
   const { isSettingsOpen, setIsSettingsOpen, apiConfig, setApiConfig } = useStore();
   const [localConfig, setLocalConfig] = useState(apiConfig);
 
+  const syncLocalConfig = useCallback((nextConfig: typeof apiConfig) => {
+    queueMicrotask(() => {
+      setLocalConfig(nextConfig);
+    });
+  }, []);
+
   useEffect(() => {
-    setLocalConfig(apiConfig);
-  }, [apiConfig, isSettingsOpen]);
+    syncLocalConfig(apiConfig);
+  }, [apiConfig, isSettingsOpen, syncLocalConfig]);
 
   if (!isSettingsOpen) return null;
 

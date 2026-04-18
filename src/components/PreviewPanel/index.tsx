@@ -4,36 +4,30 @@ import { Infographic } from "@antv/infographic";
 import { useStore } from "../../store/useStore";
 
 export function PreviewPanel() {
-  const { currentDsl, viewMode, setViewMode } = useStore();
+  const { currentDsl, setCurrentDsl, viewMode, setViewMode } = useStore();
   const containerRef = useRef<HTMLDivElement>(null);
   const instanceRef = useRef<Infographic | null>(null);
   const [copied, setCopied] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [renderKey, setRenderKey] = useState(0);
 
-  // 当切换到预览模式时，强制重新渲染
+  const syncRenderError = (nextError: string | null) => {
+    queueMicrotask(() => {
+      setError(nextError);
+    });
+  };
+
   useEffect(() => {
-    if (viewMode === "preview") {
-      setRenderKey((k) => k + 1);
-    }
-  }, [viewMode]);
-
-  // 渲染逻辑
-  useEffect(() => {
-    if (viewMode !== "preview" || !containerRef.current || !currentDsl) return;
-
-    setError(null);
-
-    // 销毁旧实例
-    if (instanceRef.current) {
-      instanceRef.current.destroy?.();
+    if (viewMode !== "preview" || !containerRef.current || !currentDsl) {
+      instanceRef.current?.destroy?.();
       instanceRef.current = null;
+      syncRenderError(null);
+      return;
     }
 
-    // 清空容器
-    if (containerRef.current) {
-      containerRef.current.innerHTML = "";
-    }
+    syncRenderError(null);
+    instanceRef.current?.destroy?.();
+    instanceRef.current = null;
+    containerRef.current.innerHTML = "";
 
     try {
       instanceRef.current = new Infographic({
@@ -43,22 +37,23 @@ export function PreviewPanel() {
       });
       instanceRef.current.render(currentDsl);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "渲染失败");
+      syncRenderError(err instanceof Error ? err.message : "Render failed");
     }
-  }, [currentDsl, viewMode, renderKey]);
 
-  // 组件卸载时清理
-  useEffect(() => {
     return () => {
       instanceRef.current?.destroy?.();
       instanceRef.current = null;
     };
-  }, []);
+  }, [currentDsl, viewMode]);
 
   const handleCopyCode = async () => {
     await navigator.clipboard.writeText(currentDsl);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
+  };
+
+  const handleDslChange = (event: React.ChangeEvent<HTMLTextAreaElement>) => {
+    setCurrentDsl(event.target.value);
   };
 
   const handleExportSvg = async () => {
@@ -91,7 +86,6 @@ export function PreviewPanel() {
 
   return (
     <div className="flex flex-col h-full">
-      {/* Toolbar */}
       <div className="flex items-center justify-between p-3 border-b border-gray-200 bg-gray-50">
         <div className="flex items-center gap-1 bg-white rounded-lg p-1 border border-gray-200">
           <button
@@ -138,14 +132,12 @@ export function PreviewPanel() {
         </div>
       </div>
 
-      {/* Content */}
       <div className="flex-1 overflow-hidden relative">
         {viewMode === "preview" ? (
           <div className="w-full h-full p-4 overflow-auto bg-white">
             {currentDsl ? (
               <>
                 <div
-                  key={renderKey}
                   ref={containerRef}
                   className="w-full h-full min-h-[400px] flex items-center justify-center"
                 />
@@ -185,9 +177,14 @@ export function PreviewPanel() {
                 </>
               )}
             </button>
-            <pre className="w-full h-full p-4 overflow-auto bg-gray-900 text-gray-100 code-editor">
-              {currentDsl || "// 暂无代码"}
-            </pre>
+            <textarea
+              aria-label="DSL source editor"
+              value={currentDsl}
+              onChange={handleDslChange}
+              spellCheck={false}
+              placeholder="// Edit the DSL here, then switch back to preview."
+              className="w-full h-full p-4 pr-24 overflow-auto bg-gray-900 text-gray-100 code-editor resize-none focus:outline-none"
+            />
           </div>
         )}
       </div>
