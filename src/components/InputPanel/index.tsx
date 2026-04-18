@@ -8,20 +8,33 @@ import {
   ChevronUp,
   Check,
   X,
+  Palette,
 } from "lucide-react";
 import { useStore } from "../../store/useStore";
+import type { ThemeOption } from "../../store/useStore";
 import { presetPrompts } from "../../data/presets";
 import { generateInfographic } from "../../services/aiService";
+import { applyThemeToDsl } from "../../utils/themeHelper";
+
+const THEME_OPTIONS: { value: ThemeOption; label: string }[] = [
+  { value: "default", label: "Default" },
+  { value: "dark", label: "Dark" },
+  { value: "hand-drawn", label: "Hand Drawn" },
+  { value: "light", label: "Light" },
+];
 
 export function InputPanel() {
   const {
     inputText,
     setInputText,
+    currentDsl,
     setCurrentDsl,
     isGenerating,
     setIsGenerating,
     generateStatus,
     setGenerateStatus,
+    selectedTheme,
+    setSelectedTheme,
     history,
     addToHistory,
     clearHistory,
@@ -41,6 +54,16 @@ export function InputPanel() {
     }
   }, [generateStatus, setGenerateStatus]);
 
+  // 主题变更时，更新当前 DSL
+  useEffect(() => {
+    if (currentDsl.trim()) {
+      const updatedDsl = applyThemeToDsl(currentDsl, selectedTheme);
+      if (updatedDsl !== currentDsl) {
+        setCurrentDsl(updatedDsl);
+      }
+    }
+  }, [selectedTheme, currentDsl, setCurrentDsl]);
+
   const handleGenerate = async () => {
     if (!inputText.trim() || isGenerating) return;
 
@@ -55,7 +78,9 @@ export function InputPanel() {
     setGenerateStatus("loading");
 
     try {
-      const dsl = await generateInfographic(inputText, apiConfig);
+      let dsl = await generateInfographic(inputText, apiConfig);
+      // 生成后应用当前选中的主题
+      dsl = applyThemeToDsl(dsl, selectedTheme);
       setCurrentDsl(dsl);
       addToHistory({ prompt: inputText, dsl });
       setGenerateStatus("success");
@@ -69,14 +94,17 @@ export function InputPanel() {
 
   const handlePresetClick = (preset: (typeof presetPrompts)[0]) => {
     setInputText(preset.prompt);
-    setCurrentDsl(preset.dsl);
+    // 预设也应用当前主题
+    const themedDsl = applyThemeToDsl(preset.dsl, selectedTheme);
+    setCurrentDsl(themedDsl);
     setGenerateStatus("idle");
     setError(null);
   };
 
   const handleHistoryClick = (item: { prompt: string; dsl: string }) => {
     setInputText(item.prompt);
-    setCurrentDsl(item.dsl);
+    const themedDsl = applyThemeToDsl(item.dsl, selectedTheme);
+    setCurrentDsl(themedDsl);
     setGenerateStatus("idle");
     setError(null);
   };
@@ -176,6 +204,22 @@ export function InputPanel() {
       </div>
       {/* Input Area */}
       <div className="p-4 border-b border-gray-200">
+        {/* Theme Selector */}
+        <div className="mb-3 flex items-center gap-2">
+          <Palette className="w-4 h-4 text-gray-400" />
+          <span className="text-xs text-gray-500">主题：</span>
+          <select
+            value={selectedTheme}
+            onChange={(e) => setSelectedTheme(e.target.value as ThemeOption)}
+            className="text-xs px-2 py-1 border border-gray-200 rounded-md bg-white text-gray-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent cursor-pointer hover:border-gray-300 transition-colors"
+          >
+            {THEME_OPTIONS.map((opt) => (
+              <option key={opt.value} value={opt.value}>
+                {opt.label}
+              </option>
+            ))}
+          </select>
+        </div>
         <div className="relative">
           <textarea
             value={inputText}
@@ -192,6 +236,7 @@ export function InputPanel() {
             {renderButtonContent()}
           </button>
         </div>
+
         {error && <p className="mt-2 text-sm text-red-500">{error}</p>}
       </div>
 

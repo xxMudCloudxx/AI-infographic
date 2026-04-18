@@ -16,6 +16,8 @@ export interface ApiConfig {
 
 export type GenerateStatus = 'idle' | 'loading' | 'success' | 'error';
 
+export type ThemeOption = 'default' | 'dark' | 'hand-drawn' | 'light';
+
 interface AppState {
   // Input state
   inputText: string;
@@ -36,6 +38,10 @@ interface AppState {
   // Generate status for feedback
   generateStatus: GenerateStatus;
   setGenerateStatus: (status: GenerateStatus) => void;
+
+  // Theme
+  selectedTheme: ThemeOption;
+  setSelectedTheme: (theme: ThemeOption) => void;
 
   // History
   history: HistoryItem[];
@@ -87,6 +93,10 @@ export const useStore = create<AppState>()(
       generateStatus: 'idle',
       setGenerateStatus: (status) => set({ generateStatus: status }),
 
+      // Theme
+      selectedTheme: 'default',
+      setSelectedTheme: (theme) => set({ selectedTheme: theme }),
+
       // History
       history: [],
       addToHistory: (item) =>
@@ -117,6 +127,7 @@ export const useStore = create<AppState>()(
       name: 'infographic-storage',
       partialize: (state) => ({
         history: state.history,
+        selectedTheme: state.selectedTheme,
         // 只持久化用户手动设置的配置，不持久化环境变量的默认值
         apiConfig: state.apiConfig,
       }),

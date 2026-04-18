@@ -47,7 +47,11 @@ export function Gallery() {
   );
 
   useEffect(() => {
-    setVisibleCount(INITIAL_VISIBLE_COUNT);
+    // let react schedule it properly
+    const timer = setTimeout(() => {
+      setVisibleCount(INITIAL_VISIBLE_COUNT);
+    }, 0);
+    return () => clearTimeout(timer);
   }, [selectedCategory, deferredSearchText]);
 
   const handleUseItem = (item: PresetItem) => {
