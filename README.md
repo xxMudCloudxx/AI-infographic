@@ -1,73 +1,46 @@
-# React + TypeScript + Vite
+# AI-Infograph (智能信息图生成器)
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+**AI-Infograph** 是一个专为**数据可视化课程作业**设计的项目。该项目旨在利用通用的自然语言和大语言模型（LLM），将日常文字、报告、长篇文档内容智能化地提炼并一键转换为具备专业设计的高保真信息图表。
 
-Currently, two official plugins are available:
+底层可视化渲染引擎基于 [@antv/infographic](https://github.com/antvis/Infographic)，借力其强大的特定领域语言 (DSL)，帮助用户无需拖拽即可实现“所想即所图”。
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+## ✨ 核心功能
 
-## React Compiler
+*   **💬 对话式生成**: 直接输入你想要的图表描述，智能调用 AI 接口生成图表，并将结果渲染出来。
+*   **📄 文档导入与智能划词**: 支持上传 `.md` 和 `.docx` 格式的长文档，解析后可在左侧悬浮文档面板中阅读。更支持**划词选中内容**进行精准“引用”，所引用的片段将与提示词合并发送，使得 AI 能基于特定上下文给出更好的生成结果（支持全屏浸入式阅读）。
+*   **🎨 智能主题切换**: 内置多套风格主题，一键切换即可无缝改变全局图表风格（支持 Default、Dark 极暗模式、Hand-Drawn 手绘风、Light 明亮风）。
+*   **🧩 模块化与可交互图表**: 支持在可视化区域进行放大缩小和平移，也可以在界面右下角获取生成的纯 DSL 语法内容用于二次加工。
+*   **📚 预设与丰富的图库**: 内置信息图 Gallery，展示和提供多款高保真信息模板案例，支持一键载入查看并微调。本地具备历史记录机制保存你的探索脚印。
+*   **⚙️ 灵活参数配置**: 可在设置面板随意替换 OpenAI 兼容的代理源、模型名称及 API Key。
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+## 🛠 技术栈
 
-## Expanding the ESLint configuration
+*   **界面层框架**: React 18 + Vite
+*   **语言**: TypeScript 全面保障代码可靠性
+*   **CSS 与交互**: Tailwind CSS v4, Lucide Icons, Headless UI 交互设计
+*   **核心状态管理**: Zustand (结合 LocalStorage 状态持久化)
+*   **文档解析引擎**: Mammoth (用于 docx 纯文本提取)
+*   **可视化渲染引擎**: @antv/infographic 
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+## 🚀 快速启动
 
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
+1.  **克隆项目**并进入目录
+2.  安装依赖:
+    ```bash
+    npm install
+    # 或者 yarn / pnpm
+    ```
+3.  开发模式运行:
+    ```bash
+    npm run dev
+    ```
+4.  正式构建并预览:
+    ```bash
+    npm run build
+    npm run preview
+    ```
 
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
+## 📝 课程作业声明
 
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-```
-
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
-
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
-
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-```
+本项目作为**数据可视化课程的作业提交**。
+主要探讨方向：探索“大模型 (LLM) 上下文理解能力”与“信息图形化领域语言 (DSL)”结合应用的可行性，以及探索从长文本提取核心逻辑自动渲染优质可视化图表的场景与交互落地。
