@@ -53,40 +53,16 @@ body {
   line-height: 1.6;
 }
 
-@keyframes carousel-marquee {
+@keyframes carousel-scroll {
   0% {
     transform: translateX(0);
   }
   100% {
-    transform: translateX(-100%);
+    transform: translateX(-50%);
   }
 }
 
-@keyframes carousel-marquee-2 {
-  0% {
-    transform: translateX(100%);
-  }
-  100% {
-    transform: translateX(0);
-  }
-}
-
-.carousel-marquee-track,
-.carousel-marquee-track-2 {
-  width: 100%;
-  white-space: nowrap;
-  display: flex;
-  flex-direction: row;
-  animation-duration: 36s;
-  animation-timing-function: linear;
-  animation-iteration-count: infinite;
+.carousel-track {
+  animation: carousel-scroll 20s linear infinite;
   will-change: transform;
-}
-
-.carousel-marquee-track {
-  animation-name: carousel-marquee;
-}
-
-.carousel-marquee-track-2 {
-  animation-name: carousel-marquee-2;
 }

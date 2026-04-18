@@ -2,6 +2,20 @@ import { memo, useEffect, useRef, useState } from "react";
 import { Infographic } from "@antv/infographic";
 import { carouselItems } from "../../data/presets";
 
+const WARM_SOLID_COLORS = [
+  "#f8f9ff",
+  "#fff5f7",
+  "#fffbf5",
+  "#f0f9f9",
+  "#faf8ff",
+  "#fafbff",
+  "#fffaf5",
+  "#f5f7ff",
+];
+
+const getWarmSolidColor = (index: number) =>
+  WARM_SOLID_COLORS[index % WARM_SOLID_COLORS.length];
+
 export function Carousel() {
   const sectionRef = useRef<HTMLDivElement>(null);
   const [shouldPlay, setShouldPlay] = useState(false);
@@ -52,44 +66,37 @@ export function Carousel() {
   }, []);
 
   return (
-    <section className="relative bg-linear-to-br from-slate-50 to-indigo-50 py-6 lg:py-8">
-      <div className="max-w-[1800px] mx-auto px-2 lg:px-4">
-        <div ref={sectionRef} className="relative overflow-x-clip">
-          <div
-            className="carousel-marquee-track py-2"
-            style={{ animationPlayState: shouldPlay ? "running" : "paused" }}
-          >
-            <CarouselItems isLazy={isLazy} />
-          </div>
-          <div
-            aria-hidden="true"
-            className="carousel-marquee-track-2 absolute top-0 py-2"
-            style={{ animationPlayState: shouldPlay ? "running" : "paused" }}
-          >
-            <CarouselItems isLazy={isLazy} />
-          </div>
+    <section className="relative bg-linear-to-br from-slate-50 to-indigo-50 py-8 lg:py-12 overflow-hidden">
+      <div ref={sectionRef} className="relative">
+        {/* 单个track，内容复制两次实现无缝滚动 */}
+        <div
+          className="carousel-track flex"
+          style={{ animationPlayState: shouldPlay ? "running" : "paused" }}
+        >
+          <CarouselItems isLazy={isLazy} />
+          <CarouselItems isLazy={isLazy} aria-hidden />
         </div>
       </div>
     </section>
   );
 }
 
-const CarouselItems = memo<{ isLazy: boolean }>(function CarouselItems({
-  isLazy,
-}) {
-  return (
-    <>
-      {carouselItems.map((item, index) => (
-        <CarouselCard
-          key={`carousel-${item.id}-${index}`}
-          dsl={item.dsl}
-          index={index}
-          isLazy={isLazy}
-        />
-      ))}
-    </>
-  );
-});
+const CarouselItems = memo<{ isLazy: boolean; "aria-hidden"?: boolean }>(
+  function CarouselItems({ isLazy, "aria-hidden": ariaHidden }) {
+    return (
+      <div className="flex shrink-0" aria-hidden={ariaHidden}>
+        {carouselItems.map((item, index) => (
+          <CarouselCard
+            key={`carousel-${item.id}-${index}`}
+            dsl={item.dsl}
+            index={index}
+            isLazy={isLazy}
+          />
+        ))}
+      </div>
+    );
+  },
+);
 
 function CarouselCard({
   dsl,
@@ -124,15 +131,22 @@ function CarouselCard({
   }, [dsl, isLazy]);
 
   const rotateClass =
-    index % 2 === 0 ? "rotate-2 hover:-rotate-1" : "-rotate-2 hover:rotate-1";
+    index % 2 === 0 ? "rotate-1 hover:-rotate-1" : "-rotate-1 hover:rotate-1";
+  const warmBackground = getWarmSolidColor(index);
 
   return (
-    <div className="group flex justify-center px-8 lg:px-10 min-w-[78%] md:min-w-[52%] lg:min-w-[30%] xl:min-w-[26%]">
+    <div className="group flex justify-center px-4 lg:px-6 shrink-0">
       <div
         className={`rounded-2xl transition-transform duration-300 ease-in-out group-hover:scale-105 ${rotateClass}`}
       >
-        <div className="relative overflow-hidden rounded-2xl bg-white border border-gray-200 shadow-sm">
-          <div ref={containerRef} className="aspect-4/3 w-full bg-gray-50" />
+        <div className="relative overflow-hidden rounded-2xl bg-white border border-gray-200 shadow-md hover:shadow-lg transition-shadow">
+          <div
+            ref={containerRef}
+            className="w-80 lg:w-100 aspect-4/3 bg-gray-50 p-3"
+            style={{
+              backgroundColor: warmBackground,
+            }}
+          />
         </div>
       </div>
     </div>
