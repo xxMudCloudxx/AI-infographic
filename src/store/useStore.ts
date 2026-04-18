@@ -14,6 +14,8 @@ export interface ApiConfig {
   model: string;
 }
 
+export type GenerateStatus = 'idle' | 'loading' | 'success' | 'error';
+
 interface AppState {
   // Input state
   inputText: string;
@@ -31,6 +33,10 @@ interface AppState {
   isGenerating: boolean;
   setIsGenerating: (loading: boolean) => void;
 
+  // Generate status for feedback
+  generateStatus: GenerateStatus;
+  setGenerateStatus: (status: GenerateStatus) => void;
+
   // History
   history: HistoryItem[];
   addToHistory: (item: Omit<HistoryItem, 'id' | 'timestamp'>) => void;
@@ -44,6 +50,19 @@ interface AppState {
   isSettingsOpen: boolean;
   setIsSettingsOpen: (open: boolean) => void;
 }
+
+// 获取API配置，优先使用环境变量
+const getInitialApiConfig = (): ApiConfig => {
+  const envBaseUrl = import.meta.env.VITE_API_BASE_URL;
+  const envApiKey = import.meta.env.VITE_API_KEY;
+  const envModel = import.meta.env.VITE_API_MODEL;
+
+  return {
+    baseUrl: envBaseUrl || 'https://api.openai.com/v1',
+    apiKey: envApiKey || '',
+    model: envModel || 'gpt-4o',
+  };
+};
 
 export const useStore = create<AppState>()(
   persist(
@@ -64,6 +83,10 @@ export const useStore = create<AppState>()(
       isGenerating: false,
       setIsGenerating: (loading) => set({ isGenerating: loading }),
 
+      // Generate status
+      generateStatus: 'idle',
+      setGenerateStatus: (status) => set({ generateStatus: status }),
+
       // History
       history: [],
       addToHistory: (item) =>
@@ -79,12 +102,8 @@ export const useStore = create<AppState>()(
         })),
       clearHistory: () => set({ history: [] }),
 
-      // API Config
-      apiConfig: {
-        baseUrl: import.meta.env.VITE_API_BASE_URL || 'https://api.openai.com/v1',
-        apiKey: import.meta.env.VITE_API_KEY || '',
-        model: import.meta.env.VITE_API_MODEL || 'gpt-4o',
-      },
+      // API Config - 初始值从环境变量获取
+      apiConfig: getInitialApiConfig(),
       setApiConfig: (config) =>
         set((state) => ({
           apiConfig: { ...state.apiConfig, ...config },
@@ -98,8 +117,25 @@ export const useStore = create<AppState>()(
       name: 'infographic-storage',
       partialize: (state) => ({
         history: state.history,
+        // 只持久化用户手动设置的配置，不持久化环境变量的默认值
         apiConfig: state.apiConfig,
       }),
+      // 合并时优先使用环境变量中的值（如果有的话）
+      merge: (persistedState, currentState) => {
+        const persisted = persistedState as Partial<AppState>;
+        const envConfig = getInitialApiConfig();
+
+        return {
+          ...currentState,
+          ...persisted,
+          apiConfig: {
+            // 如果环境变量有值，优先使用环境变量
+            baseUrl: envConfig.baseUrl || persisted.apiConfig?.baseUrl || currentState.apiConfig.baseUrl,
+            apiKey: envConfig.apiKey || persisted.apiConfig?.apiKey || currentState.apiConfig.apiKey,
+            model: envConfig.model || persisted.apiConfig?.model || currentState.apiConfig.model,
+          },
+        };
+      },
     }
   )
 );

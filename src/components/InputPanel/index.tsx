@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import { Send, History, Sparkles, Trash2, ChevronDown, ChevronUp } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { Send, History, Sparkles, Trash2, ChevronDown, ChevronUp, Check, X } from 'lucide-react';
 import { useStore } from '../../store/useStore';
 import { presetPrompts } from '../../data/presets';
 import { generateInfographic } from '../../services/aiService';
@@ -11,6 +11,8 @@ export function InputPanel() {
     setCurrentDsl,
     isGenerating,
     setIsGenerating,
+    generateStatus,
+    setGenerateStatus,
     history,
     addToHistory,
     clearHistory,
@@ -20,23 +22,37 @@ export function InputPanel() {
   const [showHistory, setShowHistory] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  // 3秒后重置状态
+  useEffect(() => {
+    if (generateStatus === 'success' || generateStatus === 'error') {
+      const timer = setTimeout(() => {
+        setGenerateStatus('idle');
+      }, 3000);
+      return () => clearTimeout(timer);
+    }
+  }, [generateStatus, setGenerateStatus]);
+
   const handleGenerate = async () => {
     if (!inputText.trim() || isGenerating) return;
 
     if (!apiConfig.apiKey) {
       setError('请先在设置中配置API密钥');
+      setGenerateStatus('error');
       return;
     }
 
     setError(null);
     setIsGenerating(true);
+    setGenerateStatus('loading');
 
     try {
       const dsl = await generateInfographic(inputText, apiConfig);
       setCurrentDsl(dsl);
       addToHistory({ prompt: inputText, dsl });
+      setGenerateStatus('success');
     } catch (err) {
       setError(err instanceof Error ? err.message : '生成失败，请重试');
+      setGenerateStatus('error');
     } finally {
       setIsGenerating(false);
     }
@@ -45,17 +61,50 @@ export function InputPanel() {
   const handlePresetClick = (preset: (typeof presetPrompts)[0]) => {
     setInputText(preset.prompt);
     setCurrentDsl(preset.dsl);
+    setGenerateStatus('idle');
+    setError(null);
   };
 
   const handleHistoryClick = (item: { prompt: string; dsl: string }) => {
     setInputText(item.prompt);
     setCurrentDsl(item.dsl);
+    setGenerateStatus('idle');
+    setError(null);
   };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
       handleGenerate();
+    }
+  };
+
+  // 根据状态渲染按钮内容
+  const renderButtonContent = () => {
+    switch (generateStatus) {
+      case 'loading':
+        return (
+          <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+        );
+      case 'success':
+        return <Check className="w-5 h-5" />;
+      case 'error':
+        return <X className="w-5 h-5" />;
+      default:
+        return <Send className="w-5 h-5" />;
+    }
+  };
+
+  // 根据状态获取按钮样式
+  const getButtonClassName = () => {
+    const base = 'absolute right-3 bottom-3 p-2 rounded-lg transition-colors';
+    switch (generateStatus) {
+      case 'success':
+        return `${base} bg-green-500 text-white`;
+      case 'error':
+        return `${base} bg-red-500 text-white`;
+      default:
+        return `${base} bg-indigo-500 text-white hover:bg-indigo-600 disabled:opacity-50 disabled:cursor-not-allowed`;
     }
   };
 
@@ -74,13 +123,9 @@ export function InputPanel() {
           <button
             onClick={handleGenerate}
             disabled={isGenerating || !inputText.trim()}
-            className="absolute right-3 bottom-3 p-2 bg-indigo-500 text-white rounded-lg hover:bg-indigo-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+            className={getButtonClassName()}
           >
-            {isGenerating ? (
-              <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
-            ) : (
-              <Send className="w-5 h-5" />
-            )}
+            {renderButtonContent()}
           </button>
         </div>
         {error && (

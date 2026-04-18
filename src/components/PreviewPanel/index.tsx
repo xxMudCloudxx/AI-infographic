@@ -9,30 +9,44 @@ export function PreviewPanel() {
   const instanceRef = useRef<Infographic | null>(null);
   const [copied, setCopied] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [renderKey, setRenderKey] = useState(0);
 
+  // 当切换到预览模式时，强制重新渲染
   useEffect(() => {
-    if (!containerRef.current || !currentDsl) return;
+    if (viewMode === 'preview') {
+      setRenderKey((k) => k + 1);
+    }
+  }, [viewMode]);
+
+  // 渲染逻辑
+  useEffect(() => {
+    if (viewMode !== 'preview' || !containerRef.current || !currentDsl) return;
 
     setError(null);
 
-    try {
-      if (!instanceRef.current) {
-        instanceRef.current = new Infographic({
-          container: containerRef.current,
-          svg: { style: { width: '100%', height: '100%' } },
-        });
-      }
+    // 销毁旧实例
+    if (instanceRef.current) {
+      instanceRef.current.destroy?.();
+      instanceRef.current = null;
+    }
 
+    // 清空容器
+    if (containerRef.current) {
+      containerRef.current.innerHTML = '';
+    }
+
+    try {
+      instanceRef.current = new Infographic({
+        container: containerRef.current,
+        svg: { style: { width: '100%', height: '100%' } },
+      });
       instanceRef.current.render(currentDsl);
     } catch (err) {
       setError(err instanceof Error ? err.message : '渲染失败');
     }
+  }, [currentDsl, viewMode, renderKey]);
 
-    return () => {
-      // Cleanup on unmount
-    };
-  }, [currentDsl]);
-
+  // 组件卸载时清理
   useEffect(() => {
     return () => {
       instanceRef.current?.destroy?.();
@@ -130,6 +144,7 @@ export function PreviewPanel() {
             {currentDsl ? (
               <>
                 <div
+                  key={renderKey}
                   ref={containerRef}
                   className="w-full h-full min-h-[400px] flex items-center justify-center"
                 />
