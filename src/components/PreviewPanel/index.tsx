@@ -1,7 +1,7 @@
-import { useEffect, useRef, useState } from 'react';
-import { Eye, Code, Download, Image, Copy, Check } from 'lucide-react';
-import { Infographic } from '@antv/infographic';
-import { useStore } from '../../store/useStore';
+import { useEffect, useRef, useState } from "react";
+import { Eye, Code, Download, Image, Copy, Check } from "lucide-react";
+import { Infographic } from "@antv/infographic";
+import { useStore } from "../../store/useStore";
 
 export function PreviewPanel() {
   const { currentDsl, viewMode, setViewMode } = useStore();
@@ -13,14 +13,14 @@ export function PreviewPanel() {
 
   // 当切换到预览模式时，强制重新渲染
   useEffect(() => {
-    if (viewMode === 'preview') {
+    if (viewMode === "preview") {
       setRenderKey((k) => k + 1);
     }
   }, [viewMode]);
 
   // 渲染逻辑
   useEffect(() => {
-    if (viewMode !== 'preview' || !containerRef.current || !currentDsl) return;
+    if (viewMode !== "preview" || !containerRef.current || !currentDsl) return;
 
     setError(null);
 
@@ -32,17 +32,18 @@ export function PreviewPanel() {
 
     // 清空容器
     if (containerRef.current) {
-      containerRef.current.innerHTML = '';
+      containerRef.current.innerHTML = "";
     }
 
     try {
       instanceRef.current = new Infographic({
         container: containerRef.current,
-        svg: { style: { width: '100%', height: '100%' } },
+        svg: { style: { width: "100%", height: "100%" } },
+        editable: true,
       });
       instanceRef.current.render(currentDsl);
     } catch (err) {
-      setError(err instanceof Error ? err.message : '渲染失败');
+      setError(err instanceof Error ? err.message : "渲染失败");
     }
   }, [currentDsl, viewMode, renderKey]);
 
@@ -64,13 +65,13 @@ export function PreviewPanel() {
     if (!instanceRef.current) return;
 
     try {
-      const dataUrl = await instanceRef.current.toDataURL({ type: 'svg' });
-      const link = document.createElement('a');
-      link.download = 'infographic.svg';
+      const dataUrl = await instanceRef.current.toDataURL({ type: "svg" });
+      const link = document.createElement("a");
+      link.download = "infographic.svg";
       link.href = dataUrl;
       link.click();
     } catch (err) {
-      console.error('Export SVG failed:', err);
+      console.error("Export SVG failed:", err);
     }
   };
 
@@ -78,13 +79,13 @@ export function PreviewPanel() {
     if (!instanceRef.current) return;
 
     try {
-      const dataUrl = await instanceRef.current.toDataURL({ type: 'png' });
-      const link = document.createElement('a');
-      link.download = 'infographic.png';
+      const dataUrl = await instanceRef.current.toDataURL({ type: "png" });
+      const link = document.createElement("a");
+      link.download = "infographic.png";
       link.href = dataUrl;
       link.click();
     } catch (err) {
-      console.error('Export PNG failed:', err);
+      console.error("Export PNG failed:", err);
     }
   };
 
@@ -94,22 +95,22 @@ export function PreviewPanel() {
       <div className="flex items-center justify-between p-3 border-b border-gray-200 bg-gray-50">
         <div className="flex items-center gap-1 bg-white rounded-lg p-1 border border-gray-200">
           <button
-            onClick={() => setViewMode('preview')}
+            onClick={() => setViewMode("preview")}
             className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-sm transition-colors ${
-              viewMode === 'preview'
-                ? 'bg-indigo-500 text-white'
-                : 'text-gray-600 hover:bg-gray-100'
+              viewMode === "preview"
+                ? "bg-indigo-500 text-white"
+                : "text-gray-600 hover:bg-gray-100"
             }`}
           >
             <Eye className="w-4 h-4" />
             预览
           </button>
           <button
-            onClick={() => setViewMode('source')}
+            onClick={() => setViewMode("source")}
             className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-sm transition-colors ${
-              viewMode === 'source'
-                ? 'bg-indigo-500 text-white'
-                : 'text-gray-600 hover:bg-gray-100'
+              viewMode === "source"
+                ? "bg-indigo-500 text-white"
+                : "text-gray-600 hover:bg-gray-100"
             }`}
           >
             <Code className="w-4 h-4" />
@@ -139,7 +140,7 @@ export function PreviewPanel() {
 
       {/* Content */}
       <div className="flex-1 overflow-hidden relative">
-        {viewMode === 'preview' ? (
+        {viewMode === "preview" ? (
           <div className="w-full h-full p-4 overflow-auto bg-white">
             {currentDsl ? (
               <>
@@ -185,7 +186,7 @@ export function PreviewPanel() {
               )}
             </button>
             <pre className="w-full h-full p-4 overflow-auto bg-gray-900 text-gray-100 code-editor">
-              {currentDsl || '// 暂无代码'}
+              {currentDsl || "// 暂无代码"}
             </pre>
           </div>
         )}
