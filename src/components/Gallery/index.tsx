@@ -1,30 +1,38 @@
-import { useDeferredValue, useEffect, useMemo, useRef, useState, useTransition } from 'react';
-import { Search, Filter, Play } from 'lucide-react';
-import { Infographic } from '@antv/infographic';
-import { galleryItems } from '../../data/presets';
-import type { PresetItem } from '../../data/presets';
-import { useStore } from '../../store/useStore';
+import {
+  useDeferredValue,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  useTransition,
+} from "react";
+import { Search, Filter, Play } from "lucide-react";
+import { Infographic } from "@antv/infographic";
+import { galleryItems } from "../../data/presets";
+import type { PresetItem } from "../../data/presets";
+import { useStore } from "../../store/useStore";
 
 export function Gallery() {
   const INITIAL_VISIBLE_COUNT = 18;
   const LOAD_MORE_STEP = 18;
 
   const { setCurrentDsl, setInputText } = useStore();
-  const [selectedCategory, setSelectedCategory] = useState('全部');
-  const [searchText, setSearchText] = useState('');
+  const [selectedCategory, setSelectedCategory] = useState("全部");
+  const [searchText, setSearchText] = useState("");
   const [visibleCount, setVisibleCount] = useState(INITIAL_VISIBLE_COUNT);
   const [isPending, startTransition] = useTransition();
   const deferredSearchText = useDeferredValue(searchText);
 
   const categories = useMemo(() => {
     const categorySet = new Set(galleryItems.map((item) => item.category));
-    return ['全部', ...Array.from(categorySet)];
+    return ["全部", ...Array.from(categorySet)];
   }, []);
 
   const filteredItems = useMemo(() => {
     const normalizedSearchText = deferredSearchText.trim().toLowerCase();
     return galleryItems.filter((item) => {
-      const matchCategory = selectedCategory === '全部' || item.category === selectedCategory;
+      const matchCategory =
+        selectedCategory === "全部" || item.category === selectedCategory;
       const matchSearch =
         !normalizedSearchText ||
         item.title.toLowerCase().includes(normalizedSearchText) ||
@@ -35,7 +43,7 @@ export function Gallery() {
 
   const visibleItems = useMemo(
     () => filteredItems.slice(0, visibleCount),
-    [filteredItems, visibleCount]
+    [filteredItems, visibleCount],
   );
 
   useEffect(() => {
@@ -45,7 +53,7 @@ export function Gallery() {
   const handleUseItem = (item: PresetItem) => {
     setCurrentDsl(item.dsl);
     setInputText(item.prompt);
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+    window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
   return (
@@ -75,8 +83,8 @@ export function Gallery() {
                 }}
                 className={`px-4 py-1.5 text-sm rounded-full border transition-colors ${
                   selectedCategory === cat
-                    ? 'bg-indigo-500 text-white border-indigo-500'
-                    : 'bg-white text-gray-600 border-gray-200 hover:border-indigo-300'
+                    ? "bg-indigo-500 text-white border-indigo-500"
+                    : "bg-white text-gray-600 border-gray-200 hover:border-indigo-300"
                 }`}
               >
                 {cat}
@@ -95,7 +103,8 @@ export function Gallery() {
             />
           </div>
           <span className="text-sm text-gray-500">
-            {visibleItems.length} / {filteredItems.length} / {galleryItems.length}
+            {visibleItems.length} / {filteredItems.length} /{" "}
+            {galleryItems.length}
           </span>
         </div>
 
@@ -117,13 +126,16 @@ export function Gallery() {
               onClick={() => setVisibleCount((prev) => prev + LOAD_MORE_STEP)}
               className="px-5 py-2 text-sm rounded-lg border border-indigo-200 text-indigo-600 hover:bg-indigo-50 transition-colors"
             >
-              加载更多 ({Math.min(LOAD_MORE_STEP, filteredItems.length - visibleCount)})
+              加载更多 (
+              {Math.min(LOAD_MORE_STEP, filteredItems.length - visibleCount)})
             </button>
           </div>
         )}
 
         {isPending && (
-          <div className="mt-3 text-center text-xs text-gray-400">正在更新筛选结果...</div>
+          <div className="mt-3 text-center text-xs text-gray-400">
+            正在更新筛选结果...
+          </div>
         )}
 
         {filteredItems.length === 0 && (
@@ -151,11 +163,11 @@ function GalleryCard({ item, onUse }: GalleryCardProps) {
     try {
       instanceRef.current = new Infographic({
         container: containerRef.current,
-        svg: { style: { width: '100%', height: '100%' } },
+        svg: { style: { width: "100%", height: "100%" } },
       });
       instanceRef.current.render(item.dsl);
     } catch (err) {
-      console.error('Render gallery item failed:', err);
+      console.error("Render gallery item failed:", err);
     }
 
     return () => {
@@ -165,18 +177,11 @@ function GalleryCard({ item, onUse }: GalleryCardProps) {
   }, [item.dsl]);
 
   return (
-    <div
-      className="group relative bg-white border border-gray-200 rounded-xl overflow-hidden hover:shadow-lg transition-shadow"
-    >
-      <div
-        ref={containerRef}
-        className="w-full h-48 bg-gray-50"
-      />
+    <div className="group relative bg-white border border-gray-200 rounded-xl overflow-hidden hover:shadow-lg transition-shadow">
+      <div ref={containerRef} className="w-full h-48 bg-gray-50" />
 
       {/* Hover Overlay */}
-      <div
-        className="absolute inset-0 bg-black/50 flex items-center justify-center transition-opacity opacity-0 pointer-events-none group-hover:opacity-100 group-hover:pointer-events-auto"
-      >
+      <div className="absolute inset-0 bg-black/50 flex items-center justify-center transition-opacity opacity-0 pointer-events-none group-hover:opacity-100 group-hover:pointer-events-auto">
         <button
           onClick={onUse}
           className="flex items-center gap-2 px-6 py-3 bg-white text-indigo-600 font-medium rounded-lg hover:bg-indigo-50 transition-colors"

@@ -16,7 +16,9 @@
 
 body {
   margin: 0;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  font-family:
+    -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue",
+    Arial, sans-serif;
   background-color: var(--bg-main);
   color: var(--text-primary);
 }
@@ -46,7 +48,45 @@ body {
 
 /* Code editor style */
 .code-editor {
-  font-family: 'Fira Code', 'Monaco', 'Consolas', monospace;
+  font-family: "Fira Code", "Monaco", "Consolas", monospace;
   font-size: 13px;
   line-height: 1.6;
+}
+
+@keyframes carousel-marquee {
+  0% {
+    transform: translateX(0);
+  }
+  100% {
+    transform: translateX(-100%);
+  }
+}
+
+@keyframes carousel-marquee-2 {
+  0% {
+    transform: translateX(100%);
+  }
+  100% {
+    transform: translateX(0);
+  }
+}
+
+.carousel-marquee-track,
+.carousel-marquee-track-2 {
+  width: 100%;
+  white-space: nowrap;
+  display: flex;
+  flex-direction: row;
+  animation-duration: 36s;
+  animation-timing-function: linear;
+  animation-iteration-count: infinite;
+  will-change: transform;
+}
+
+.carousel-marquee-track {
+  animation-name: carousel-marquee;
+}
+
+.carousel-marquee-track-2 {
+  animation-name: carousel-marquee-2;
 }

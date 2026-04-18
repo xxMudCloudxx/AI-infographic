@@ -1,4 +1,4 @@
-import { siteGalleryItems } from './siteGalleryTemplates';
+import { siteGalleryItems } from "./siteGalleryTemplates";
 
 export interface PresetItem {
   id: string;
@@ -12,10 +12,11 @@ export interface PresetItem {
 // 预设提示词（左侧快捷按钮）
 export const presetPrompts: PresetItem[] = [
   {
-    id: 'carbon-emission',
-    title: '绿能科技公司碳减排量趋势',
-    description: '展示2019-2023年碳减排量数据',
-    prompt: '2019-2023年，绿能科技公司的碳减排量持续攀升。2019年处理量120万吨，2020年通过技术创新增至190万吨。2021年新设备投产后达到280万吨，2022年拓展国际市场后跃至420万吨，2023年突破550万吨。',
+    id: "carbon-emission",
+    title: "绿能科技公司碳减排量趋势",
+    description: "展示2019-2023年碳减排量数据",
+    prompt:
+      "2019-2023年，绿能科技公司的碳减排量持续攀升。2019年处理量120万吨，2020年通过技术创新增至190万吨。2021年新设备投产后达到280万吨，2022年拓展国际市场后跃至420万吨，2023年突破550万吨。",
     dsl: `infographic chart-column-simple
 data
   title 绿能科技公司碳减排量趋势
@@ -38,13 +39,13 @@ data
       desc 突破新高
 theme
   palette #10b981 #34d399 #6ee7b7`,
-    category: '图表型',
+    category: "图表型",
   },
   {
-    id: 'tcp-handshake',
-    title: 'TCP三次握手',
-    description: '客户端与服务器建立连接的过程',
-    prompt: '展示TCP三次握手过程，包括客户端和服务器之间的状态变化',
+    id: "tcp-handshake",
+    title: "TCP三次握手",
+    description: "客户端与服务器建立连接的过程",
+    prompt: "展示TCP三次握手过程，包括客户端和服务器之间的状态变化",
     dsl: `infographic sequence-interaction-default-badge-card
 data
   title TCP三次握手
@@ -89,13 +90,13 @@ data
     server-listen - SYN=1, ACK=1, seq=y, ack=x+1 -> client-syn-sent
     client-syn-sent - ACK=1, seq=x+1, ack=y+1 -> server-syn-rcvd
     client-established <- 数据传输 -> server-established`,
-    category: '顺序型',
+    category: "顺序型",
   },
   {
-    id: 'product-dev-flow',
-    title: '产品开发流程',
-    description: '从需求到发布的完整流程',
-    prompt: '展示产品开发的五个阶段：需求分析、设计、开发、测试、发布',
+    id: "product-dev-flow",
+    title: "产品开发流程",
+    description: "从需求到发布的完整流程",
+    prompt: "展示产品开发的五个阶段：需求分析、设计、开发、测试、发布",
     dsl: `infographic sequence-snake-steps-compact-card
 data
   title 产品开发流程
@@ -118,13 +119,13 @@ data
       icon mingcute/rocket-line
 theme
   palette #6366f1 #8b5cf6 #a78bfa`,
-    category: '顺序型',
+    category: "顺序型",
   },
   {
-    id: 'company-swot',
-    title: '企业SWOT分析',
-    description: '优势、劣势、机会、威胁分析',
-    prompt: '对一家科技公司进行SWOT分析',
+    id: "company-swot",
+    title: "企业SWOT分析",
+    description: "优势、劣势、机会、威胁分析",
+    prompt: "对一家科技公司进行SWOT分析",
     dsl: `infographic compare-swot
 data
   title 科技公司SWOT分析
@@ -154,13 +155,13 @@ data
         - label 用户需求快速变化
         - label 市场进入门槛降低
         - label 数据与安全挑战加剧`,
-    category: '对比型',
+    category: "对比型",
   },
   {
-    id: 'org-structure',
-    title: '公司组织架构',
-    description: '展示公司部门层级结构',
-    prompt: '展示一个科技公司的组织架构图',
+    id: "org-structure",
+    title: "公司组织架构",
+    description: "展示公司部门层级结构",
+    prompt: "展示一个科技公司的组织架构图",
     dsl: `infographic hierarchy-tree-curved-line-rounded-rect-node
 data
   title 公司组织架构
@@ -185,17 +186,17 @@ data
         children
           - label 品牌推广
           - label 渠道销售`,
-    category: '层级型',
+    category: "层级型",
   },
 ];
 
 // 轮播图数据（横向滚动展示）
 export const carouselItems: PresetItem[] = [
   {
-    id: 'carousel-chart',
-    title: '年度营收增长',
-    description: '展示近三年及本年目标营收对比',
-    prompt: '',
+    id: "carousel-chart",
+    title: "年度营收增长",
+    description: "展示近三年及本年目标营收对比",
+    prompt: "",
     dsl: `infographic chart-column-simple
 data
   title 年度营收增长
@@ -219,13 +220,13 @@ data
       icon lucide/trophy
 theme
   palette #3b82f6 #60a5fa #93c5fd #bfdbfe`,
-    category: '图表型',
+    category: "图表型",
   },
   {
-    id: 'carousel-list',
-    title: '企业优势列表',
-    description: '展示企业在不同维度上的核心优势',
-    prompt: '',
+    id: "carousel-list",
+    title: "企业优势列表",
+    description: "展示企业在不同维度上的核心优势",
+    prompt: "",
     dsl: `infographic list-grid-badge-card
 data
   title 企业优势列表
@@ -249,13 +250,13 @@ data
       value 88
 theme
   palette #6366f1 #8b5cf6 #a78bfa`,
-    category: '列表型',
+    category: "列表型",
   },
   {
-    id: 'carousel-sequence',
-    title: '发布流程',
-    description: '内容发布审核流程',
-    prompt: '',
+    id: "carousel-sequence",
+    title: "发布流程",
+    description: "内容发布审核流程",
+    prompt: "",
     dsl: `infographic sequence-ascending-steps
 data
   title 内容发布流程
@@ -276,13 +277,13 @@ data
   order asc
 theme
   palette #10b981 #34d399 #6ee7b7 #a7f3d0`,
-    category: '顺序型',
+    category: "顺序型",
   },
   {
-    id: 'carousel-pros-cons',
-    title: '企业优劣势对比',
-    description: '呈现企业当前在市场中的核心优势与待改善劣势',
-    prompt: '',
+    id: "carousel-pros-cons",
+    title: "企业优劣势对比",
+    description: "呈现企业当前在市场中的核心优势与待改善劣势",
+    prompt: "",
     dsl: `infographic compare-binary-horizontal-badge-card-arrow
 data
   title 企业优劣势对比
@@ -306,13 +307,13 @@ data
           desc 人力与物流成本高于行业均值
 theme
   palette #10b981 #ef4444`,
-    category: '对比型',
+    category: "对比型",
   },
   {
-    id: 'carousel-hierarchy',
-    title: '用户调研',
-    description: '通过用户调研了解用户需求和痛点',
-    prompt: '',
+    id: "carousel-hierarchy",
+    title: "用户调研",
+    description: "通过用户调研了解用户需求和痛点",
+    prompt: "",
     dsl: `infographic hierarchy-mindmap-branch-gradient-capsule-item
 data
   title 用户调研
@@ -337,13 +338,13 @@ data
             icon mingcute/danmaku-line
 theme
   palette #f59e0b #fbbf24 #fcd34d`,
-    category: '层级型',
+    category: "层级型",
   },
   {
-    id: 'carousel-quadrant',
-    title: '风险控制',
-    description: '风险频率与损失程度分析',
-    prompt: '',
+    id: "carousel-quadrant",
+    title: "风险控制",
+    description: "风险频率与损失程度分析",
+    prompt: "",
     dsl: `infographic compare-quadrant-quarter-simple-card
 data
   title 风险控制
@@ -363,7 +364,7 @@ data
       icon mingcute/exchange-bitcoin-fill
 theme
   palette #ef4444 #f59e0b #3b82f6 #10b981`,
-    category: '对比型',
+    category: "对比型",
   },
 ];
 

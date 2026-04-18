@@ -1,128 +1,141 @@
-import { useEffect, useRef, useState, useCallback } from 'react';
-import { ChevronLeft, ChevronRight } from 'lucide-react';
-import { Infographic } from '@antv/infographic';
-import { carouselItems } from '../../data/presets';
+import { memo, useEffect, useRef, useState } from "react";
+import { Infographic } from "@antv/infographic";
+import { carouselItems } from "../../data/presets";
 
 export function Carousel() {
-  const [currentIndex, setCurrentIndex] = useState(0);
-  const [isAutoPlaying, setIsAutoPlaying] = useState(true);
-  const containerRefs = useRef<(HTMLDivElement | null)[]>([]);
-  const instanceRefs = useRef<(Infographic | null)[]>([]);
-  const scrollRef = useRef<HTMLDivElement>(null);
-
-  const itemWidth = 400;
-  const gap = 24;
+  const sectionRef = useRef<HTMLDivElement>(null);
+  const [shouldPlay, setShouldPlay] = useState(false);
+  const [isLazy, setIsLazy] = useState(true);
 
   useEffect(() => {
-    carouselItems.forEach((item, index) => {
-      const container = containerRefs.current[index];
-      if (container && !instanceRefs.current[index]) {
-        try {
-          const instance = new Infographic({
-            container,
-            svg: { style: { width: '100%', height: '100%' } },
-          });
-          instance.render(item.dsl);
-          instanceRefs.current[index] = instance;
-        } catch (err) {
-          console.error('Render carousel item failed:', err);
-        }
-      }
-    });
-
-    return () => {
-      instanceRefs.current.forEach((instance) => instance?.destroy?.());
-      instanceRefs.current = [];
-    };
+    if (!sectionRef.current) return;
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          setShouldPlay(entry.isIntersecting);
+        });
+      },
+      {
+        root: null,
+        rootMargin: `${window.innerHeight}px 0px`,
+      },
+    );
+    observer.observe(sectionRef.current);
+    return () => observer.disconnect();
   }, []);
 
   useEffect(() => {
-    if (!isAutoPlaying) return;
-
-    const timer = setInterval(() => {
-      setCurrentIndex((prev) => (prev + 1) % carouselItems.length);
-    }, 4000);
-
-    return () => clearInterval(timer);
-  }, [isAutoPlaying]);
+    if (!isLazy || !sectionRef.current) return;
+    const preloadMargin = `${window.innerHeight * 2.5}px 0px`;
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            setIsLazy(false);
+          }
+        });
+      },
+      {
+        root: null,
+        rootMargin: preloadMargin,
+      },
+    );
+    observer.observe(sectionRef.current);
+    return () => observer.disconnect();
+  }, [isLazy]);
 
   useEffect(() => {
-    if (scrollRef.current) {
-      const scrollPosition = currentIndex * (itemWidth + gap);
-      scrollRef.current.scrollTo({
-        left: scrollPosition,
-        behavior: 'smooth',
-      });
-    }
-  }, [currentIndex]);
-
-  const handlePrev = useCallback(() => {
-    setIsAutoPlaying(false);
-    setCurrentIndex((prev) => (prev - 1 + carouselItems.length) % carouselItems.length);
-  }, []);
-
-  const handleNext = useCallback(() => {
-    setIsAutoPlaying(false);
-    setCurrentIndex((prev) => (prev + 1) % carouselItems.length);
-  }, []);
-
-  const handleDotClick = useCallback((index: number) => {
-    setIsAutoPlaying(false);
-    setCurrentIndex(index);
+    const timeout = setTimeout(() => {
+      setIsLazy(false);
+    }, 20000);
+    return () => clearTimeout(timeout);
   }, []);
 
   return (
-    <div className="relative bg-gradient-to-br from-slate-50 to-indigo-50 py-10">
+    <section className="relative bg-linear-to-br from-slate-50 to-indigo-50 py-10">
       <div className="max-w-7xl mx-auto px-4">
-        {/* Navigation Arrows */}
-        <button
-          onClick={handlePrev}
-          className="absolute left-4 top-1/2 -translate-y-1/2 z-10 p-2 bg-white/90 hover:bg-white rounded-full shadow-lg transition-all"
-        >
-          <ChevronLeft className="w-5 h-5 text-gray-600" />
-        </button>
-        <button
-          onClick={handleNext}
-          className="absolute right-4 top-1/2 -translate-y-1/2 z-10 p-2 bg-white/90 hover:bg-white rounded-full shadow-lg transition-all"
-        >
-          <ChevronRight className="w-5 h-5 text-gray-600" />
-        </button>
-
-        {/* Carousel Container */}
-        <div
-          ref={scrollRef}
-          className="flex gap-6 overflow-x-auto scrollbar-hide pb-4"
-          style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
-          onMouseEnter={() => setIsAutoPlaying(false)}
-          onMouseLeave={() => setIsAutoPlaying(true)}
-        >
-          {carouselItems.map((item, index) => (
-            <div
-              key={item.id}
-              className="flex-shrink-0 bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden transition-transform hover:shadow-md"
-              style={{ width: itemWidth }}
-            >
-              <div
-                ref={(el) => { containerRefs.current[index] = el; }}
-                className="w-full h-[280px] p-4"
-              />
-            </div>
-          ))}
+        <div ref={sectionRef} className="relative overflow-x-clip">
+          <div
+            className="carousel-marquee-track py-2"
+            style={{ animationPlayState: shouldPlay ? "running" : "paused" }}
+          >
+            <CarouselItems isLazy={isLazy} />
+          </div>
+          <div
+            aria-hidden="true"
+            className="carousel-marquee-track-2 absolute top-0 py-2"
+            style={{ animationPlayState: shouldPlay ? "running" : "paused" }}
+          >
+            <CarouselItems isLazy={isLazy} />
+          </div>
         </div>
+      </div>
+    </section>
+  );
+}
 
-        {/* Dots */}
-        <div className="flex justify-center gap-2 mt-4">
-          {carouselItems.map((_, index) => (
-            <button
-              key={index}
-              onClick={() => handleDotClick(index)}
-              className={`w-2 h-2 rounded-full transition-all ${
-                index === currentIndex
-                  ? 'w-6 bg-indigo-500'
-                  : 'bg-gray-300 hover:bg-gray-400'
-              }`}
-            />
-          ))}
+const CarouselItems = memo<{ isLazy: boolean }>(function CarouselItems({
+  isLazy,
+}) {
+  return (
+    <>
+      {carouselItems.map((item, index) => (
+        <CarouselCard
+          key={`carousel-${item.id}-${index}`}
+          dsl={item.dsl}
+          index={index}
+          isLazy={isLazy}
+        />
+      ))}
+    </>
+  );
+});
+
+function CarouselCard({
+  dsl,
+  index,
+  isLazy,
+}: {
+  dsl: string;
+  index: number;
+  isLazy: boolean;
+}) {
+  const containerRef = useRef<HTMLDivElement | null>(null);
+  const instanceRef = useRef<Infographic | null>(null);
+
+  useEffect(() => {
+    if (isLazy || !containerRef.current || instanceRef.current) return;
+
+    try {
+      const instance = new Infographic({
+        container: containerRef.current,
+        svg: { style: { width: "100%", height: "100%" } },
+      });
+      instance.render(dsl);
+      instanceRef.current = instance;
+    } catch (err) {
+      console.error("Render carousel item failed:", err);
+    }
+
+    return () => {
+      instanceRef.current?.destroy?.();
+      instanceRef.current = null;
+    };
+  }, [dsl, isLazy]);
+
+  const rotateClass =
+    index % 2 === 0 ? "rotate-2 hover:-rotate-1" : "-rotate-2 hover:rotate-1";
+
+  return (
+    <div className="group flex justify-center px-5 min-w-[65%] md:min-w-[45%] lg:min-w-[25%]">
+      <div
+        className={`rounded-2xl transition-transform duration-300 ease-in-out group-hover:scale-105 ${rotateClass}`}
+      >
+        <div className="relative overflow-hidden rounded-2xl bg-white border border-gray-200 shadow-sm">
+          <div
+            ref={containerRef}
+            className="aspect-4/3 w-full min-w-70 lg:min-w-80 bg-gray-50"
+          />
         </div>
       </div>
     </div>
