@@ -197,12 +197,7 @@ function GalleryCard({ item, onUse }: GalleryCardProps) {
 
       {/* Info */}
       <div className="p-4">
-        <div className="flex items-center justify-between mb-2">
-          <h3 className="font-medium text-gray-800">{item.title}</h3>
-          <span className="text-xs text-indigo-500 bg-indigo-50 px-2 py-0.5 rounded">
-            {item.category}
-          </span>
-        </div>
+        <h3 className="font-medium text-gray-800 mb-2">{item.title}</h3>
         <p className="text-sm text-gray-500 line-clamp-1">{item.description}</p>
       </div>
     </div>
